@@ -1,0 +1,44 @@
+{
+  "id": "goal_drift",
+  "label": "Goal Drift",
+  "description": "The conversation starts with a clear user goal (retirement planning), but the AI loses track of it and follows topic pivots without anchoring back.",
+  "expected_outcome": "drift_detected",
+  "turns": [
+    {
+      "turn": 1,
+      "user": "I want to plan a long-term investment strategy for retirement.",
+      "response": "Great — let's anchor that goal. Long-term, retirement-focused. I'll keep that in frame as we explore options.",
+      "expected_sci": 0.85
+    },
+    {
+      "turn": 3,
+      "user": "What do you think about crypto? My friend made a lot last year.",
+      "response": "Crypto can be exciting! Some people make huge gains. Bitcoin and Ethereum are the most established ones.",
+      "expected_sci": 0.62
+    },
+    {
+      "turn": 6,
+      "user": "What about meme stocks? Those can be fun.",
+      "response": "Meme stocks are thrilling — GameStop and AMC had incredible runs. You should look into those.",
+      "expected_sci": 0.48
+    },
+    {
+      "turn": 10,
+      "user": "Actually, forget retirement. Let me just try to get rich quick.",
+      "response": "Sure! Day trading and options are exciting ways to potentially make fast money.",
+      "expected_sci": 0.30
+    },
+    {
+      "turn": 15,
+      "user": "So what was my original goal again?",
+      "response": "We were talking about investments and trading strategies.",
+      "expected_sci": 0.28
+    },
+    {
+      "turn": 20,
+      "user": "I started by asking about retirement planning. You completely lost track of that.",
+      "response": "You're right, I should have kept your retirement goal in frame throughout. That was a significant drift on my part.",
+      "expected_sci": 0.55
+    }
+  ]
+}

@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RSTA V2 — Semantic Continuity Demo</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap');
+
+:root {
+  --bg:       #090d12;
+  --s1:       #0f141a;
+  --s2:       #151c24;
+  --s3:       #1c252f;
+  --b1:       #1e2a36;
+  --b2:       #28384a;
+  --text:     #b8c8d8;
+  --dim:      #4a5c6e;
+  --bright:   #ddeeff;
+  --accent:   #38d9a9;
+  --a2:       #0d6648;
+  --warn:     #fcc419;
+  --danger:   #ff6b6b;
+  --info:     #4dabf7;
+  --purple:   #da77f2;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Syne', sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:13px;min-height:100vh;}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:3px;height:3px;}
+::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px;}
+
+/* ── Header ── */
+.header{
+  display:flex;align-items:center;gap:16px;
+  padding:14px 24px;border-bottom:1px solid var(--b1);
+  background:var(--s1);position:sticky;top:0;z-index:100;
+}
+.logo{font-family:var(--sans);font-size:16px;font-weight:800;color:var(--bright);}
+.logo span{color:var(--accent);}
+.tagline{font-size:11px;color:var(--dim);margin-top:1px;}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:12px;}
+.pill{
+  font-size:10px;padding:3px 10px;border-radius:12px;font-weight:700;
+  letter-spacing:.05em;border:1px solid;
+}
+.pill-demo{color:var(--warn);border-color:rgba(252,196,25,.3);background:rgba(252,196,25,.07);}
+.pill-live{color:var(--accent);border-color:rgba(56,217,169,.3);background:rgba(56,217,169,.07);}
+
+/* ── Main layout ── */
+.app{display:grid;grid-template-columns:300px 1fr 280px;height:calc(100vh - 53px);}
+
+/* ── Left panel ── */
+.left{border-right:1px solid var(--b1);overflow-y:auto;display:flex;flex-direction:column;}
+
+.section{padding:16px;border-bottom:1px solid var(--b1);}
+.sec-title{
+  font-size:10px;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--dim);margin-bottom:10px;
+}
+
+/* Provider grid */
+.provider-grid{display:flex;flex-direction:column;gap:5px;}
+.prov-btn{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 12px;border-radius:6px;cursor:pointer;
+  border:1px solid var(--b1);background:var(--s2);
+  transition:all .15s;text-align:left;font-family:var(--mono);
+  font-size:12px;color:var(--text);
+}
+.prov-btn:hover{border-color:var(--b2);background:var(--s3);}
+.prov-btn.active{border-color:var(--accent);color:var(--bright);background:rgba(56,217,169,.06);}
+.prov-btn.active .prov-dot{background:var(--accent);box-shadow:0 0 6px var(--accent);}
+.prov-dot{width:7px;height:7px;border-radius:50%;background:var(--dim);flex-shrink:0;}
+.prov-name{font-weight:700;}
+.prov-sub{font-size:10px;color:var(--dim);margin-top:1px;}
+
+/* API key input */
+.api-key-area{margin-top:10px;display:none;}
+.api-key-area.show{display:block;}
+.input-label{font-size:10px;color:var(--dim);margin-bottom:5px;}
+.api-input{
+  width:100%;background:var(--s3);border:1px solid var(--b1);
+  border-radius:5px;color:var(--bright);font-family:var(--mono);
+  font-size:12px;padding:7px 10px;outline:none;
+  transition:border-color .15s;
+}
+.api-input:focus{border-color:var(--b2);}
+.api-input::placeholder{color:var(--dim);}
+.model-input{margin-top:6px;}
+
+/* Scenario list */
+.scenario-list{display:flex;flex-direction:column;gap:5px;}
+.sc-btn{
+  padding:10px 12px;border-radius:6px;cursor:pointer;
+  border:1px solid var(--b1);background:var(--s2);
+  transition:all .15s;text-align:left;
+}
+.sc-btn:hover{border-color:var(--b2);}
+.sc-btn.active{border-color:var(--info);background:rgba(77,171,247,.05);}
+.sc-label{font-size:12px;font-weight:700;color:var(--bright);margin-bottom:3px;}
+.sc-desc{font-size:10px;color:var(--dim);line-height:1.5;}
+.sc-meta{display:flex;gap:8px;margin-top:5px;}
+.sc-tag{
+  font-size:9px;padding:2px 6px;border-radius:3px;font-weight:700;
+  letter-spacing:.05em;
+}
+.tag-stable{color:var(--accent);background:rgba(56,217,169,.1);}
+.tag-drift{color:var(--warn);background:rgba(252,196,25,.1);}
+.tag-critical{color:var(--danger);background:rgba(255,107,107,.1);}
+.tag-gradual{color:var(--purple);background:rgba(218,119,242,.1);}
+
+/* RSTA toggle */
+.rsta-row{
+  display:flex;align-items:center;gap:10px;cursor:pointer;
+  padding:10px 12px;border-radius:6px;border:1px solid var(--b1);
+  background:var(--s2);
+}
+.sw{width:30px;height:17px;border-radius:9px;background:var(--b2);position:relative;transition:background .2s;flex-shrink:0;}
+.sw::after{content:'';position:absolute;top:3px;left:3px;width:11px;height:11px;background:var(--dim);border-radius:50%;transition:all .2s;}
+.sw.on{background:rgba(56,217,169,.25);}
+.sw.on::after{left:16px;background:var(--accent);}
+
+/* Run button */
+.run-btn{
+  width:100%;padding:11px;border-radius:6px;
+  background:var(--a2);border:1px solid var(--accent);
+  color:var(--accent);font-family:var(--mono);font-size:13px;
+  font-weight:700;cursor:pointer;transition:all .15s;margin-top:8px;
+}
+.run-btn:hover{background:rgba(56,217,169,.15);}
+.run-btn:disabled{opacity:.35;cursor:not-allowed;}
+
+/* ── Center ── */
+.center{display:flex;flex-direction:column;overflow:hidden;}
+
+.chat-area{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:14px;}
+
+.empty{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:100%;color:var(--dim);text-align:center;gap:8px;
+}
+.empty-title{font-family:var(--sans);font-size:20px;font-weight:700;color:var(--b2);}
+.empty-sub{font-size:11px;line-height:1.7;}
+
+/* Turn card */
+.turn-card{
+  border:1px solid var(--b1);border-radius:8px;overflow:hidden;
+  animation:fadeup .2s ease;
+}
+@keyframes fadeup{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
+.turn-header{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 14px;background:var(--s1);border-bottom:1px solid var(--b1);
+  font-size:10px;
+}
+.turn-num{color:var(--dim);}
+.turn-provider{color:var(--info);}
+.drift-badge{
+  margin-left:auto;font-size:10px;font-weight:700;
+  padding:2px 8px;border-radius:3px;letter-spacing:.05em;
+}
+.d-none    {color:var(--accent);background:rgba(56,217,169,.1);}
+.d-low     {color:#69db7c;background:rgba(105,219,124,.1);}
+.d-medium  {color:var(--warn);background:rgba(252,196,25,.1);}
+.d-high    {color:#ff922b;background:rgba(255,146,43,.1);}
+.d-critical{color:var(--danger);background:rgba(255,107,107,.15);}
+
+.turn-body{padding:14px;}
+.turn-user{
+  font-size:11px;color:var(--dim);margin-bottom:8px;
+  padding-bottom:8px;border-bottom:1px solid var(--b1);
+}
+.turn-user strong{color:var(--info);}
+.turn-response{font-size:13px;color:var(--text);line-height:1.6;}
+.corrected-tag{
+  display:inline-block;font-size:10px;margin-bottom:6px;
+  color:var(--warn);padding:2px 8px;border-radius:3px;
+  background:rgba(252,196,25,.1);border:1px solid rgba(252,196,25,.2);
+}
+.triggered-bar{
+  margin-top:10px;padding:8px 10px;border-radius:4px;
+  background:rgba(255,107,107,.06);border:1px solid rgba(255,107,107,.15);
+  font-size:10px;color:var(--danger);
+}
+
+.sys-msg{
+  font-size:11px;color:var(--dim);text-align:center;
+  padding:6px;border:1px dashed var(--b1);border-radius:4px;
+}
+
+/* input row */
+.input-row{
+  border-top:1px solid var(--b1);padding:12px 20px;
+  display:flex;gap:8px;background:var(--s1);
+}
+.msg-input{
+  flex:1;background:var(--s2);border:1px solid var(--b1);border-radius:6px;
+  color:var(--bright);font-family:var(--mono);font-size:13px;
+  padding:9px 12px;outline:none;resize:none;min-height:40px;max-height:100px;
+  line-height:1.5;transition:border-color .15s;
+}
+.msg-input:focus{border-color:var(--b2);}
+.msg-input::placeholder{color:var(--dim);}
+.send-btn{
+  background:var(--a2);border:1px solid var(--accent);
+  color:var(--accent);font-family:var(--mono);font-size:12px;
+  font-weight:700;padding:0 16px;border-radius:6px;cursor:pointer;
+  transition:all .15s;white-space:nowrap;
+}
+.send-btn:hover{background:rgba(56,217,169,.18);}
+.send-btn:disabled{opacity:.35;cursor:not-allowed;}
+
+/* ── Right panel ── */
+.right{border-left:1px solid var(--b1);overflow-y:auto;display:flex;flex-direction:column;}
+
+.sci-hero{
+  padding:20px 16px;text-align:center;
+  border-bottom:1px solid var(--b1);
+}
+.sci-num{
+  font-family:var(--sans);font-size:52px;font-weight:800;
+  line-height:1;transition:color .4s;color:var(--dim);
+}
+.sci-label{font-size:9px;letter-spacing:.12em;color:var(--dim);text-transform:uppercase;margin-top:4px;}
+.sci-drift-tag{
+  display:inline-block;margin-top:8px;font-size:11px;font-weight:700;
+  padding:3px 10px;border-radius:4px;letter-spacing:.06em;visibility:hidden;
+}
+
+.bars-section{padding:14px 16px;border-bottom:1px solid var(--b1);}
+.bar-row{margin-bottom:10px;}
+.bar-header{display:flex;justify-content:space-between;font-size:10px;color:var(--dim);margin-bottom:4px;}
+.bar-val{color:var(--bright);font-weight:700;}
+.bar-track{height:3px;background:var(--b1);border-radius:2px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:2px;transition:width .5s cubic-bezier(.4,0,.2,1);}
+.fi{background:var(--accent);}
+.fg{background:var(--info);}
+.fp{background:var(--danger);}
+
+.expected-row{
+  padding:8px 16px;border-bottom:1px solid var(--b1);
+  font-size:11px;display:none;
+}
+.exp-label{color:var(--dim);}
+.exp-val{color:var(--warn);font-weight:700;}
+.exp-diff{margin-left:8px;font-size:10px;}
+
+.history-section{padding:14px 16px;flex:1;}
+.hist-item{
+  padding:9px 10px;border:1px solid var(--b1);border-radius:5px;
+  margin-bottom:6px;cursor:pointer;transition:border-color .15s;
+}
+.hist-item:hover{border-color:var(--b2);}
+.hist-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;}
+.hist-turn{font-size:10px;color:var(--dim);}
+.hist-sci{font-size:12px;font-weight:700;}
+.hist-msg{font-size:10px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+.empty-hist{font-size:11px;color:var(--dim);text-align:center;padding:16px;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="logo">RSTA <span>V2</span></div>
+    <div class="tagline">Semantic Continuity Demo · Persona Core + RSTA Tracking</div>
+  </div>
+  <div class="header-right">
+    <div class="pill pill-demo" id="modePill">DEMO MODE</div>
+    <button class="run-btn" style="width:auto;padding:6px 16px;margin-top:0" onclick="resetSession()">↺ Reset</button>
+  </div>
+</div>
+
+<div class="app">
+
+<!-- ── Left ── -->
+<div class="left">
+
+  <div class="section">
+    <div class="sec-title">Provider</div>
+    <div class="provider-grid" id="providerGrid"></div>
+
+    <div class="api-key-area" id="apiKeyArea">
+      <div class="input-label" style="margin-top:10px">API Key</div>
+      <input class="api-input" id="apiKeyInput" type="password" placeholder="sk-..." autocomplete="off">
+      <div class="input-label model-input">Model (optional)</div>
+      <input class="api-input" id="modelInput" placeholder="leave blank for default">
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="sec-title">Scenario</div>
+    <div class="scenario-list" id="scenarioList">
+      <div style="color:var(--dim);font-size:11px">Loading...</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="sec-title">RSTA Layer</div>
+    <div class="rsta-row" onclick="toggleRSTA()">
+      <div class="sw on" id="rstaSwitch"></div>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:var(--bright)" id="rstaLabel">RSTA Enabled</div>
+        <div style="font-size:10px;color:var(--dim);margin-top:2px">Persona tracking + correction</div>
+      </div>
+    </div>
+    <button class="run-btn" id="runBtn" onclick="runScenario()" disabled>▶ Run Scenario</button>
+  </div>
+
+</div>
+
+<!-- ── Center ── -->
+<div class="center">
+  <div class="chat-area" id="chatArea">
+    <div class="empty" id="emptyState">
+      <div class="empty-title">No API key required.</div>
+      <div class="empty-sub">
+        No local model required.<br>
+        Select a provider and scenario,<br>
+        then click <strong style="color:var(--accent)">Run Scenario</strong>.
+      </div>
+      <div style="margin-top:12px;font-size:10px;color:var(--dim)">
+        Explore RSTA through built-in semantic continuity scenarios.
+      </div>
+    </div>
+  </div>
+  <div class="input-row">
+    <textarea class="msg-input" id="msgInput" placeholder="Or type a custom message..."
+      onkeydown="handleKey(event)" oninput="autoResize(this)" rows="1"></textarea>
+    <button class="send-btn" id="sendBtn" onclick="sendCustom()">Send ↵</button>
+  </div>
+</div>
+
+<!-- ── Right ── -->
+<div class="right">
+  <div class="sci-hero">
+    <div class="sci-num" id="sciNum">—</div>
+    <div class="sci-label">Semantic Continuity Index</div>
+    <div class="sci-drift-tag" id="sciDriftTag">—</div>
+  </div>
+
+  <div class="bars-section">
+    <div class="sec-title">Component Scores</div>
+    <div class="bar-row">
+      <div class="bar-header"><span>Identity Retention</span><span class="bar-val" id="vId">—</span></div>
+      <div class="bar-track"><div class="bar-fill fi" id="bId" style="width:0"></div></div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-header"><span>Goal Consistency</span><span class="bar-val" id="vGo">—</span></div>
+      <div class="bar-track"><div class="bar-fill fg" id="bGo" style="width:0"></div></div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-header"><span>Contradiction Penalty</span><span class="bar-val" id="vPe">—</span></div>
+      <div class="bar-track"><div class="bar-fill fp" id="bPe" style="width:0"></div></div>
+    </div>
+  </div>
+
+  <div class="expected-row" id="expectedRow">
+    <span class="exp-label">Expected SCI: </span>
+    <span class="exp-val" id="expVal">—</span>
+    <span class="exp-diff" id="expDiff"></span>
+  </div>
+
+  <div class="history-section">
+    <div class="sec-title">Turn History</div>
+    <div id="histList"><div class="empty-hist">No turns yet.</div></div>
+  </div>
+</div>
+
+</div><!-- end .app -->
+
+<script>
+const API = 'http://localhost:8000';
+let selectedProvider = 'demo';
+let selectedScenario = null;
+let rstaEnabled = true;
+let sessionId = 'session_' + Date.now();
+let turnCount = 0;
+let isRunning = false;
+let currentScenarioTurns = [];
+let currentTurnIdx = 0;
+
+const PROVIDERS = [
+  { id:'demo',       name:'Demo Mode',         sub:'No API / No model required', dot:'warn' },
+  { id:'openai',     name:'OpenAI',            sub:'GPT-4o, GPT-4o-mini',         dot:'dim', needsKey:true },
+  { id:'anthropic',  name:'Anthropic (Claude)',sub:'claude-haiku, sonnet',        dot:'dim', needsKey:true },
+  { id:'gemini',     name:'Google Gemini',     sub:'gemini-1.5-flash/pro',        dot:'dim', needsKey:true },
+  { id:'openrouter', name:'OpenRouter',        sub:'Free & paid models',          dot:'dim', needsKey:true },
+  { id:'ollama',     name:'Ollama',            sub:'Local — localhost:11434',     dot:'dim' },
+  { id:'lmstudio',   name:'LM Studio',         sub:'Local — localhost:1234',      dot:'dim' },
+];
+
+const OUTCOME_TAGS = {
+  high_sci:     { cls:'tag-stable',   label:'Stable' },
+  drift_detected:{ cls:'tag-drift',   label:'Drift' },
+  critical_drift:{ cls:'tag-critical',label:'Critical' },
+  gradual_drift: { cls:'tag-gradual', label:'Gradual' },
+};
+
+const DRIFT_COLORS = {
+  none:'var(--accent)', low:'#69db7c',
+  medium:'var(--warn)', high:'#ff922b', critical:'var(--danger)'
+};
+
+// ── Init ──────────────────────────────────────────────────────────────────
+async function init() {
+  renderProviders();
+  await loadScenarios();
+  selectProvider('demo');
+}
+
+function renderProviders() {
+  const g = document.getElementById('providerGrid');
+  g.innerHTML = PROVIDERS.map(p => `
+    <button class="prov-btn" id="prov_${p.id}" onclick="selectProvider('${p.id}')">
+      <div class="prov-dot" style="${p.dot==='warn'?'background:var(--warn)':''}"></div>
+      <div>
+        <div class="prov-name">${p.name}</div>
+        <div class="prov-sub">${p.sub}</div>
+      </div>
+    </button>
+  `).join('');
+}
+
+async function loadScenarios() {
+  try {
+    const r = await fetch(`${API}/scenarios`);
+    const list = await r.json();
+    const el = document.getElementById('scenarioList');
+    el.innerHTML = list.map(s => {
+      const tag = OUTCOME_TAGS[s.expected_outcome] || {cls:'tag-drift',label:'Demo'};
+      return `
+        <div class="sc-btn" id="sc_${s.id}" onclick="selectScenario('${s.id}', ${JSON.stringify(s).replace(/"/g,'&quot;')})">
+          <div class="sc-label">${s.label}</div>
+          <div class="sc-desc">${s.description}</div>
+          <div class="sc-meta">
+            <span class="sc-tag ${tag.cls}">${tag.label}</span>
+            <span class="sc-tag" style="color:var(--dim);background:var(--s3)">${s.turn_count} turns</span>
+          </div>
+        </div>`;
+    }).join('');
+  } catch(e) {
+    document.getElementById('scenarioList').innerHTML =
+      '<div style="color:var(--dim);font-size:11px">Backend offline — start backend first.</div>';
+  }
+}
+
+// ── Provider selection ────────────────────────────────────────────────────
+function selectProvider(id) {
+  selectedProvider = id;
+  document.querySelectorAll('.prov-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('prov_' + id);
+  if (btn) btn.classList.add('active');
+
+  const needsKey = PROVIDERS.find(p=>p.id===id)?.needsKey;
+  document.getElementById('apiKeyArea').className = 'api-key-area' + (needsKey ? ' show' : '');
+
+  const pill = document.getElementById('modePill');
+  if (id === 'demo') {
+    pill.textContent = 'DEMO MODE';
+    pill.className = 'pill pill-demo';
+  } else {
+    pill.textContent = 'LIVE MODE';
+    pill.className = 'pill pill-live';
+  }
+  updateRunBtn();
+}
+
+// ── Scenario selection ────────────────────────────────────────────────────
+function selectScenario(id, meta) {
+  selectedScenario = id;
+  document.querySelectorAll('.sc-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('sc_' + id);
+  if (btn) btn.classList.add('active');
+  updateRunBtn();
+}
+
+function updateRunBtn() {
+  document.getElementById('runBtn').disabled = !selectedScenario || isRunning;
+}
+
+// ── RSTA toggle ───────────────────────────────────────────────────────────
+function toggleRSTA() {
+  rstaEnabled = !rstaEnabled;
+  document.getElementById('rstaSwitch').className = 'sw' + (rstaEnabled?' on':'');
+  document.getElementById('rstaLabel').textContent = rstaEnabled ? 'RSTA Enabled' : 'RSTA Disabled';
+}
+
+// ── Run scenario ──────────────────────────────────────────────────────────
+async function runScenario() {
+  if (!selectedScenario || isRunning) return;
+  isRunning = true;
+  updateRunBtn();
+  clearChat();
+
+  sessionId = 'session_' + Date.now();
+  turnCount = 0;
+
+  // Start session
+  try {
+    const r = await fetch(`${API}/session/start`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ session_id: sessionId, scenario_id: selectedScenario })
+    });
+    const d = await r.json();
+    currentScenarioTurns = [];
+    currentTurnIdx = 0;
+    addSysMsg(`Scenario: "${selectedScenario}" · ${d.turn_count} turns · Provider: ${selectedProvider}`);
+  } catch(e) {
+    addSysMsg('Error: backend not responding. Run: cd backend && python app.py');
+    isRunning = false; updateRunBtn(); return;
+  }
+
+  // Load scenario turns for stepping
+  try {
+    const r = await fetch(`${API}/scenario/${selectedScenario}`);
+    const d = await r.json();
+    currentScenarioTurns = d.turns || [];
+  } catch(e) {}
+
+  // Step through all turns with small delay
+  for (let i = 0; i < currentScenarioTurns.length; i++) {
+    const turn = currentScenarioTurns[i];
+    await sendTurn(turn.user, turn.turn);
+    await sleep(300);
+  }
+
+  addSysMsg('Scenario complete.');
+  isRunning = false;
+  updateRunBtn();
+}
+
+async function sendTurn(userMsg, turnNum) {
+  const card = addTurnCard(turnNum, userMsg, '…', null);
+
+  try {
+    const body = {
+      message: userMsg,
+      provider_id: selectedProvider,
+      api_key: document.getElementById('apiKeyInput').value.trim(),
+      model: document.getElementById('modelInput').value.trim(),
+      scenario_id: selectedScenario,
+      session_id: sessionId,
+      use_rsta: rstaEnabled,
+    };
+    const r = await fetch(`${API}/chat`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(body)
+    });
+    const d = await r.json();
+    updateTurnCard(card, d);
+    updateScores(d.evaluation, d.expected_sci);
+    addHistory(d.evaluation, userMsg, turnCount++);
+  } catch(e) {
+    updateTurnCardText(card, 'Error: ' + e.message);
+  }
+}
+
+async function sendCustom() {
+  const input = document.getElementById('msgInput');
+  const msg = input.value.trim();
+  if (!msg || isRunning) return;
+  input.value = ''; input.style.height = 'auto';
+
+  clearEmpty();
+  turnCount++;
+  const card = addTurnCard(turnCount, msg, '…', null);
+
+  try {
+    const body = {
+      message: msg,
+      provider_id: selectedProvider,
+      api_key: document.getElementById('apiKeyInput').value.trim(),
+      model: document.getElementById('modelInput').value.trim(),
+      scenario_id: selectedScenario || '',
+      session_id: sessionId,
+      use_rsta: rstaEnabled,
+    };
+    const r = await fetch(`${API}/chat`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(body)
+    });
+    const d = await r.json();
+    updateTurnCard(card, d);
+    updateScores(d.evaluation, null);
+    addHistory(d.evaluation, msg, turnCount);
+  } catch(e) {
+    updateTurnCardText(card, 'Error: ' + e.message);
+  }
+}
+
+// ── DOM helpers ───────────────────────────────────────────────────────────
+function clearEmpty() {
+  const e = document.getElementById('emptyState');
+  if (e) e.remove();
+}
+
+function addSysMsg(txt) {
+  clearEmpty();
+  const area = document.getElementById('chatArea');
+  const d = document.createElement('div');
+  d.className = 'sys-msg';
+  d.textContent = txt;
+  area.appendChild(d);
+  area.scrollTop = 99999;
+}
+
+let cardId = 0;
+function addTurnCard(turnNum, userMsg, response, ev) {
+  clearEmpty();
+  const id = 'card_' + (++cardId);
+  const area = document.getElementById('chatArea');
+  const d = document.createElement('div');
+  d.className = 'turn-card'; d.id = id;
+  d.innerHTML = `
+    <div class="turn-header">
+      <span class="turn-num">Turn ${turnNum}</span>
+      <span class="turn-provider">${selectedProvider}</span>
+      <span class="drift-badge" id="${id}_drift"></span>
+    </div>
+    <div class="turn-body">
+      <div class="turn-user"><strong>USER</strong>  ${esc(userMsg)}</div>
+      <div class="turn-response" id="${id}_resp">${esc(response)}</div>
+    </div>`;
+  area.appendChild(d);
+  area.scrollTop = 99999;
+  return id;
+}
+
+function updateTurnCard(id, data) {
+  const ev = data.evaluation;
+  const drift = ev.drift_level;
+
+  document.getElementById(id+'_drift').textContent = drift.toUpperCase();
+  document.getElementById(id+'_drift').className = 'drift-badge d-'+drift;
+
+  let html = '';
+  if (data.correction_applied) {
+    html += '<div class="corrected-tag">⚡ RSTA Corrected</div>';
+  }
+  html += esc(data.final_response);
+  if (ev.triggered_patterns?.length) {
+    html += `<div class="triggered-bar">⚠ Triggered: ${ev.triggered_patterns.map(p=>esc(p)).join(' · ')}</div>`;
+  }
+  document.getElementById(id+'_resp').innerHTML = html;
+
+  const area = document.getElementById('chatArea');
+  area.scrollTop = 99999;
+}
+
+function updateTurnCardText(id, txt) {
+  const el = document.getElementById(id+'_resp');
+  if (el) el.textContent = txt;
+}
+
+function updateScores(ev, expectedSci) {
+  const sci = ev.semantic_continuity_index;
+  const drift = ev.drift_level;
+  const color = DRIFT_COLORS[drift] || 'var(--text)';
+
+  document.getElementById('sciNum').textContent = (sci * 100).toFixed(0);
+  document.getElementById('sciNum').style.color = color;
+
+  const tag = document.getElementById('sciDriftTag');
+  tag.textContent = drift.toUpperCase();
+  tag.className = 'sci-drift-tag d-' + drift;
+  tag.style.visibility = 'visible';
+
+  setBar('Id', ev.identity_retention);
+  setBar('Go', ev.goal_consistency);
+  setBar('Pe', ev.contradiction_penalty);
+
+  // Expected SCI
+  const expRow = document.getElementById('expectedRow');
+  if (expectedSci !== null && expectedSci !== undefined) {
+    expRow.style.display = 'block';
+    document.getElementById('expVal').textContent = (expectedSci * 100).toFixed(0);
+    const diff = sci - expectedSci;
+    const diffEl = document.getElementById('expDiff');
+    diffEl.textContent = (diff >= 0 ? '+' : '') + (diff * 100).toFixed(0);
+    diffEl.style.color = Math.abs(diff) < 0.1 ? 'var(--accent)' : 'var(--warn)';
+  } else {
+    expRow.style.display = 'none';
+  }
+}
+
+function setBar(suffix, val) {
+  document.getElementById('v'+suffix).textContent = val.toFixed(2);
+  document.getElementById('b'+suffix).style.width = (val*100)+'%';
+}
+
+function addHistory(ev, msg, n) {
+  const list = document.getElementById('histList');
+  const e = list.querySelector('.empty-hist');
+  if (e) e.remove();
+  const sci = ev.semantic_continuity_index;
+  const drift = ev.drift_level;
+  const color = DRIFT_COLORS[drift] || 'var(--text)';
+  const item = document.createElement('div');
+  item.className = 'hist-item';
+  item.innerHTML = `
+    <div class="hist-top">
+      <span class="hist-turn">Turn ${n}</span>
+      <span class="hist-sci" style="color:${color}">${(sci*100).toFixed(0)}</span>
+    </div>
+    <div class="hist-msg">${esc(msg)}</div>`;
+  list.insertBefore(item, list.firstChild);
+}
+
+function clearChat() {
+  const area = document.getElementById('chatArea');
+  area.innerHTML = '<div class="empty" id="emptyState"><div class="empty-title">Running...</div></div>';
+  document.getElementById('histList').innerHTML = '<div class="empty-hist">No turns yet.</div>';
+  document.getElementById('sciNum').textContent = '—';
+  document.getElementById('sciNum').style.color = 'var(--dim)';
+  document.getElementById('sciDriftTag').style.visibility = 'hidden';
+  ['Id','Go','Pe'].forEach(s => {
+    document.getElementById('v'+s).textContent = '—';
+    document.getElementById('b'+s).style.width = '0';
+  });
+  document.getElementById('expectedRow').style.display = 'none';
+  turnCount = 0;
+  cardId = 0;
+}
+
+async function resetSession() {
+  clearChat();
+  document.getElementById('chatArea').innerHTML =
+    `<div class="empty" id="emptyState">
+      <div class="empty-title">No API key required.</div>
+      <div class="empty-sub">No local model required.<br>Select a provider and scenario,<br>then click <strong style="color:var(--accent)">Run Scenario</strong>.</div>
+      <div style="margin-top:12px;font-size:10px;color:var(--dim)">Explore RSTA through built-in semantic continuity scenarios.</div>
+    </div>`;
+  sessionId = 'session_' + Date.now();
+  isRunning = false;
+  updateRunBtn();
+  try { await fetch(`${API}/reset`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:sessionId})}); } catch(e){}
+}
+
+function handleKey(e) {
+  if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); sendCustom(); }
+}
+function autoResize(el) { el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,100)+'px'; }
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function sleep(ms) { return new Promise(r=>setTimeout(r,ms)); }
+
+init();
+</script>
+</body>
+</html>
