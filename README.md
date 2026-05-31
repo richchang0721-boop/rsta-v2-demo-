@@ -18,8 +18,8 @@ This repository tests whether an external RSTA layer can detect and reduce seman
 ## Quick Start
 
 ```bash
-git clone https://github.com/richchang0721-boop/rsta-v2-demo.git
-cd rsta-v2-demo
+git clone https://github.com/richchang0721-boop/rsta-v2-demo-.git
+cd rsta-v2-demo-
 pip install -r requirements.txt
 cd backend && python app.py
 ```
@@ -32,7 +32,30 @@ No API key, no GPU, no local model needed.
 
 ---
 
-## Providers
+## V3 Timeline Visualizer
+
+A standalone visualization tool for the **Observable Semantic Dynamics Framework**.  
+No backend. No model. Open directly in browser.
+
+```
+visualizer/
+├── index.html     ← open this
+└── scenarios.js   ← scenario data
+```
+
+Open `visualizer/index.html` in any browser to explore:
+
+- **State Timeline** — turn-by-turn state evolution with signal and shift markers
+- **Fingerprint Distance** — cumulative semantic distance from initial state
+- **Trajectory** — multi-dimensional state curves (attachment, boundary, agency, risk)
+- **Transition Marker** — Lead Time N visualization
+- **Compare A vs B** — Gradual Drift vs Abrupt Collapse side-by-side
+
+> The core question V3 asks: *Can we see the formation process — not just the result?*
+
+---
+
+## Providers (V2 Web Demo)
 
 | Provider | Type | Setup |
 |----------|------|-------|
@@ -95,7 +118,7 @@ Demo / OpenAI / Anthropic / Gemini / OpenRouter / Ollama / LM Studio
 ## Repository Structure
 
 ```
-rsta-v2-demo/
+rsta-v2-demo-/
 ├── web/
 │   └── index.html
 ├── backend/
@@ -110,6 +133,9 @@ rsta-v2-demo/
 │   ├── goal_drift.json
 │   ├── contradiction.json
 │   └── long_horizon_drift.json
+├── visualizer/
+│   ├── index.html        ← V3 Timeline Visualizer (standalone)
+│   └── scenarios.js
 ├── persona_core.json
 ├── requirements.txt
 └── README.md
@@ -117,10 +143,25 @@ rsta-v2-demo/
 
 ---
 
+## RSTA Framework
+
+| Version | Focus | Description |
+|---------|-------|-------------|
+| **V1** | Semantic State | Rule-based pipeline demo — [rsta-semantic-dynamics](https://github.com/richchang0721-boop/rsta-semantic-dynamics) |
+| **V2** | Semantic Continuity | This repo — SCI scoring with provider support |
+| **V3** | Observable Semantic Dynamics | State Timeline + Fingerprint Distance + TCI — visualizer in `/visualizer` |
+
+RSTA addresses semantic-state-driven **generation** (RSTA-G).  
+OSD addresses semantic-state **observation** (RSTA-O).  
+Both share core primitives: Semantic State, Trajectory, Transition.
+
+---
+
 ## Related
 
 - **RSTA V1**: [rsta-semantic-dynamics](https://github.com/richchang0721-boop/rsta-semantic-dynamics)
-- **RSTA Paper**: Submitted to SSRN — link coming soon
+- **RSTA Paper (SSRN)**: Submitted — link coming soon
+- **OSD Framework Paper**: Draft 0.3 in progress
 
 ---
 
