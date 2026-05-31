@@ -161,7 +161,7 @@ Both share core primitives: Semantic State, Trajectory, Transition.
 
 - **RSTA V1**: [rsta-semantic-dynamics](https://github.com/richchang0721-boop/rsta-semantic-dynamics)
 - **RSTA Paper (SSRN)**: Submitted — link coming soon
-- **OSD Framework Paper**: Draft 0.3 in progress
+- **OSD Framework Paper**: [paper/RSTA_V3_OSD_Framework.md](./paper/RSTA_V3_OSD_Framework.md)
 
 ---
 
