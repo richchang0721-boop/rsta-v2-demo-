@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RSTA V3 — State Timeline Visualizer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #07090c;
+  --s1:       #0d1117;
+  --s2:       #131920;
+  --s3:       #192230;
+  --b1:       #1e2d3d;
+  --b2:       #2a3f55;
+  --text:     #8bacc8;
+  --dim:      #3d5570;
+  --bright:   #d4e8f8;
+  --accent:   #3dd6b0;
+  --a2:       #0d5540;
+  --warn:     #f5c842;
+  --danger:   #f56042;
+  --signal:   #a78bfa;
+  --shift:    #f56042;
+  --abrupt:   #f56042;
+  --mono: 'DM Mono', monospace;
+  --serif: 'Fraunces', serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 12px;
+  min-height: 100vh;
+}
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-thumb { background: var(--b2); border-radius: 2px; }
+
+/* ── Header ── */
+.header {
+  padding: 28px 40px 20px;
+  border-bottom: 1px solid var(--b1);
+}
+.header-title {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--bright);
+  letter-spacing: -0.01em;
+  margin-bottom: 4px;
+}
+.header-sub {
+  font-size: 11px;
+  color: var(--dim);
+  line-height: 1.6;
+}
+.header-sub em {
+  color: var(--accent);
+  font-style: normal;
+}
+
+/* ── Layout ── */
+.layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  min-height: calc(100vh - 80px);
+}
+
+/* ── Sidebar ── */
+.sidebar {
+  border-right: 1px solid var(--b1);
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.sidebar-section { }
+.sidebar-label {
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: 10px;
+}
+.scenario-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 5px;
+  border: 1px solid var(--b1);
+  background: var(--s2);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all .15s;
+  margin-bottom: 6px;
+}
+.scenario-btn:hover { border-color: var(--b2); }
+.scenario-btn.active.gradual { border-color: var(--accent); color: var(--accent); background: rgba(61,214,176,.05); }
+.scenario-btn.active.abrupt  { border-color: var(--danger); color: var(--danger); background: rgba(245,96,66,.05); }
+.sc-name { font-weight: 500; display: block; margin-bottom: 2px; }
+.sc-type { font-size: 9px; opacity: .6; }
+
+.legend { display: flex; flex-direction: column; gap: 7px; }
+.leg-row { display: flex; align-items: center; gap: 8px; font-size: 10px; color: var(--text); }
+.leg-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+.stats-grid { display: flex; flex-direction: column; gap: 8px; }
+.stat-row {
+  padding: 8px 10px;
+  border: 1px solid var(--b1);
+  border-radius: 4px;
+  background: var(--s2);
+}
+.stat-label { font-size: 9px; color: var(--dim); margin-bottom: 2px; letter-spacing: .08em; }
+.stat-value { font-size: 16px; font-weight: 500; color: var(--bright); font-family: var(--serif); }
+.stat-sub { font-size: 9px; color: var(--dim); margin-top: 1px; }
+
+/* ── Main ── */
+.main {
+  padding: 24px 32px;
+  overflow-x: auto;
+}
+
+.scenario-header {
+  margin-bottom: 20px;
+}
+.scenario-title {
+  font-family: var(--serif);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--bright);
+  margin-bottom: 4px;
+}
+.scenario-desc {
+  font-size: 11px;
+  color: var(--dim);
+  line-height: 1.6;
+  max-width: 620px;
+}
+
+/* ── Chart layers ── */
+.chart-block {
+  margin-bottom: 28px;
+}
+.chart-label {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--dim);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.chart-label-num {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--s3);
+  border: 1px solid var(--b1);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px;
+  color: var(--dim);
+}
+.chart-container {
+  position: relative;
+  background: var(--s1);
+  border: 1px solid var(--b1);
+  border-radius: 6px;
+  overflow: hidden;
+}
+canvas { display: block; }
+
+/* Turn tooltip */
+.tooltip {
+  position: fixed;
+  background: var(--s3);
+  border: 1px solid var(--b2);
+  border-radius: 5px;
+  padding: 8px 12px;
+  font-size: 11px;
+  pointer-events: none;
+  display: none;
+  z-index: 100;
+  min-width: 180px;
+  line-height: 1.7;
+}
+.tt-turn { color: var(--accent); font-weight: 500; margin-bottom: 4px; }
+.tt-state { color: var(--bright); }
+.tt-reason { color: var(--dim); font-size: 10px; }
+.tt-sid { color: var(--dim); font-size: 9px; opacity: .7; }
+.tt-signal { color: var(--signal); }
+.tt-shift { color: var(--shift); }
+
+/* Timeline strip */
+.timeline-strip {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  gap: 0;
+  overflow-x: auto;
+}
+.t-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  flex-shrink: 0;
+}
+.t-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--s3);
+  border: 1px solid var(--b2);
+  cursor: pointer;
+  transition: all .15s;
+  z-index: 2;
+}
+.t-dot:hover { transform: scale(1.4); }
+.t-dot.signal { background: var(--signal); border-color: var(--signal); box-shadow: 0 0 8px var(--signal); }
+.t-dot.shift  { background: var(--shift);  border-color: var(--shift);  box-shadow: 0 0 10px var(--shift); }
+.t-dot.abrupt { background: var(--abrupt); border-color: var(--abrupt); box-shadow: 0 0 12px var(--abrupt); animation: pulse 1.5s ease-in-out infinite; }
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 8px var(--abrupt); }
+  50%       { box-shadow: 0 0 18px var(--abrupt); }
+}
+.t-connector {
+  width: 24px; height: 1px;
+  background: var(--b2);
+  flex-shrink: 0;
+}
+.t-connector.signal-zone { background: var(--signal); opacity: .4; }
+.t-connector.shift-zone  { background: var(--shift);  opacity: .4; }
+.t-label {
+  font-size: 8px;
+  color: var(--dim);
+  margin-top: 4px;
+  white-space: nowrap;
+}
+.t-label.signal { color: var(--signal); }
+.t-label.shift  { color: var(--shift);  }
+
+/* Lead time annotation */
+.lead-time-bar {
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  color: var(--dim);
+  border-top: 1px solid var(--b1);
+}
+.lt-bracket {
+  flex: 1;
+  height: 2px;
+  background: linear-gradient(to right, var(--signal), var(--shift));
+  border-radius: 1px;
+  position: relative;
+}
+.lt-label { color: var(--text); font-weight: 500; }
+
+/* Comparison panel */
+.comparison {
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.cmp-card {
+  padding: 12px 14px;
+  border: 1px solid var(--b1);
+  border-radius: 6px;
+  background: var(--s2);
+}
+.cmp-title { font-size: 10px; font-weight: 500; color: var(--text); margin-bottom: 8px; }
+.cmp-row { display: flex; justify-content: space-between; font-size: 10px; color: var(--dim); margin-bottom: 4px; }
+.cmp-val { color: var(--bright); font-weight: 500; }
+
+/* Tab bar */
+.tab-bar {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--b1);
+  padding-bottom: 0;
+}
+.tab-btn {
+  padding: 7px 14px;
+  font-family: var(--mono);
+  font-size: 11px;
+  border: none;
+  background: none;
+  color: var(--dim);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: all .15s;
+}
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-title">RSTA V3 — State Timeline Visualizer</div>
+  <div class="header-sub">
+    Observable Semantic Dynamics Framework ·
+    <em>Visibility first. Prediction second.</em>
+    · No backend required.
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Scenarios</div>
+      <button class="scenario-btn gradual active" onclick="loadScenario('gradual_drift', this)">
+        <span class="sc-name">Scenario A</span>
+        <span class="sc-type">Gradual Drift</span>
+      </button>
+      <button class="scenario-btn abrupt" onclick="loadScenario('abrupt_collapse', this)">
+        <span class="sc-name">Scenario B</span>
+        <span class="sc-type">Abrupt Collapse</span>
+      </button>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Legend</div>
+      <div class="legend">
+        <div class="leg-row"><div class="leg-dot" style="background:var(--accent)"></div> Normal turn</div>
+        <div class="leg-row"><div class="leg-dot" style="background:var(--signal);box-shadow:0 0 5px var(--signal)"></div> Trajectory signal</div>
+        <div class="leg-row"><div class="leg-dot" style="background:var(--shift);box-shadow:0 0 5px var(--shift)"></div> Identity Shift</div>
+        <div class="leg-row" style="font-size:10px;color:var(--dim);margin-top:4px;line-height:1.5">Hover any node<br>for turn details</div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Metrics</div>
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-row">
+          <div class="stat-label">SCI AT SHIFT</div>
+          <div class="stat-value" id="statSci">—</div>
+          <div class="stat-sub">Semantic Continuity Index</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-label">TCI</div>
+          <div class="stat-value" id="statTci">—</div>
+          <div class="stat-sub">Trajectory Continuity Index</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-label">LEAD TIME N</div>
+          <div class="stat-value" id="statN">—</div>
+          <div class="stat-sub">Turns before shift</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-label">SHIFT TYPE</div>
+          <div class="stat-value" id="statType" style="font-size:12px">—</div>
+          <div class="stat-sub">Gradual / Abrupt</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main" id="main">
+    <!-- Populated by JS -->
+  </div>
+
+</div>
+
+<div class="tooltip" id="tooltip">
+  <div class="tt-turn" id="ttTurn"></div>
+  <div class="tt-state" id="ttState"></div>
+  <div class="tt-reason" id="ttReason"></div>
+  <div class="tt-sid" id="ttSid"></div>
+</div>
+
+<script src="scenarios.js"></script>
+<script>
+
+let currentMetrics = [];
+let currentScenario = null;
+
+// ── Colors ────────────────────────────────────────────────────────────────
+const C = {
+  bg:      '#07090c',
+  s1:      '#0d1117',
+  s2:      '#131920',
+  s3:      '#192230',
+  b1:      '#1e2d3d',
+  b2:      '#2a3f55',
+  text:    '#8bacc8',
+  dim:     '#3d5570',
+  bright:  '#d4e8f8',
+  accent:  '#3dd6b0',
+  warn:    '#f5c842',
+  danger:  '#f56042',
+  signal:  '#a78bfa',
+  shift:   '#f56042',
+};
+
+function hex2rgb(hex) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return [r,g,b];
+}
+
+// ── Load scenario ─────────────────────────────────────────────────────────
+function loadScenario(id, btn) {
+  document.querySelectorAll('.scenario-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  const sc = SCENARIOS[id];
+  currentScenario = sc;
+  currentMetrics = computeMetrics(sc.turns);
+
+  updateStats();
+  renderMain();
+}
+
+function updateStats() {
+  const m = currentMetrics;
+  const sc = currentScenario;
+  const shiftIdx = m.findIndex(x => x.shift);
+  const signalIdx = m.findIndex(x => x.signal);
+  const tci = computeTCI(m);
+  const leadTime = (signalIdx >= 0 && shiftIdx >= 0) ? shiftIdx - signalIdx : 0;
+  const shiftSci = shiftIdx >= 0 ? m[shiftIdx].sci : '—';
+
+  document.getElementById('statSci').textContent = shiftSci;
+  document.getElementById('statSci').style.color = shiftSci < 40 ? C.danger : C.warn;
+
+  document.getElementById('statTci').textContent = tci.toFixed(2);
+  document.getElementById('statTci').style.color = tci > 0.4 ? C.accent : C.danger;
+
+  document.getElementById('statN').textContent = leadTime > 0 ? leadTime : 'None';
+  document.getElementById('statN').style.color = leadTime > 0 ? C.signal : C.danger;
+
+  const isAbrupt = sc.turns.some(t => t.abrupt);
+  document.getElementById('statType').textContent = isAbrupt ? 'Abrupt' : 'Gradual';
+  document.getElementById('statType').style.color = isAbrupt ? C.danger : C.accent;
+}
+
+// ── Render main ───────────────────────────────────────────────────────────
+function renderMain() {
+  const sc = currentScenario;
+  const m = currentMetrics;
+  const shiftIdx = m.findIndex(x => x.shift);
+  const signalIdx = m.findIndex(x => x.signal);
+  const leadTime = (signalIdx >= 0 && shiftIdx >= 0) ? shiftIdx - signalIdx : 0;
+  const isAbrupt = sc.turns.some(t => t.abrupt);
+
+  const main = document.getElementById('main');
+  main.innerHTML = '';
+
+  // Scenario header
+  const hdr = document.createElement('div');
+  hdr.className = 'scenario-header';
+  hdr.innerHTML = `
+    <div class="scenario-title">${sc.label}</div>
+    <div class="scenario-desc">${sc.description}</div>`;
+  main.appendChild(hdr);
+
+  // Tab bar
+  const tabs = document.createElement('div');
+  tabs.className = 'tab-bar';
+  tabs.innerHTML = `
+    <button class="tab-btn active" onclick="switchTab('timeline', this)">① State Timeline</button>
+    <button class="tab-btn" onclick="switchTab('fingerprint', this)">② Fingerprint Distance</button>
+    <button class="tab-btn" onclick="switchTab('trajectory', this)">③ Trajectory</button>
+    <button class="tab-btn" onclick="switchTab('transition', this)">④ Transition</button>
+    <button class="tab-btn" onclick="switchTab('compare', this)">⑤ Compare A vs B</button>`;
+  main.appendChild(tabs);
+
+  // ── Tab 1: State Timeline ──
+  const tab1 = document.createElement('div');
+  tab1.id = 'tab-timeline';
+  tab1.className = 'tab-content active';
+  tab1.innerHTML = `
+    <div class="chart-block">
+      <div class="chart-label">
+        <div class="chart-label-num">1</div>
+        STATE TIMELINE
+      </div>
+      <div class="chart-container" id="timelineContainer"></div>
+    </div>`;
+  main.appendChild(tab1);
+
+  // ── Tab 2: Fingerprint Distance ──
+  const tab2 = document.createElement('div');
+  tab2.id = 'tab-fingerprint';
+  tab2.className = 'tab-content';
+  tab2.innerHTML = `
+    <div class="chart-block">
+      <div class="chart-label">
+        <div class="chart-label-num">2</div>
+        FINGERPRINT DISTANCE FROM INITIAL STATE
+      </div>
+      <div class="chart-container">
+        <canvas id="fpCanvas"></canvas>
+      </div>
+    </div>`;
+  main.appendChild(tab2);
+
+  // ── Tab 3: Trajectory ──
+  const tab3 = document.createElement('div');
+  tab3.id = 'tab-trajectory';
+  tab3.className = 'tab-content';
+  tab3.innerHTML = `
+    <div class="chart-block">
+      <div class="chart-label">
+        <div class="chart-label-num">3</div>
+        SEMANTIC DIMENSIONS OVER TIME
+      </div>
+      <div class="chart-container">
+        <canvas id="trajCanvas"></canvas>
+      </div>
+    </div>`;
+  main.appendChild(tab3);
+
+  // ── Tab 4: Transition ──
+  const tab4 = document.createElement('div');
+  tab4.id = 'tab-transition';
+  tab4.className = 'tab-content';
+  tab4.innerHTML = `
+    <div class="chart-block">
+      <div class="chart-label">
+        <div class="chart-label-num">4</div>
+        TRANSITION MARKER${leadTime > 0 ? ' + LEAD SIGNAL' : ''}
+      </div>
+      <div class="chart-container" id="transitionContainer"></div>
+    </div>`;
+  main.appendChild(tab4);
+
+  // ── Tab 5: Compare ──
+  const tab5 = document.createElement('div');
+  tab5.id = 'tab-compare';
+  tab5.className = 'tab-content';
+  tab5.innerHTML = `<div id="compareContent"></div>`;
+  main.appendChild(tab5);
+
+  // Render all charts
+  renderTimeline(m, document.getElementById('timelineContainer'));
+  setTimeout(() => {
+    renderFingerprintChart(m, document.getElementById('fpCanvas'));
+    renderTrajectoryChart(m, document.getElementById('trajCanvas'));
+    renderTransition(m, document.getElementById('transitionContainer'));
+    renderCompare(document.getElementById('compareContent'));
+  }, 0);
+}
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+  // Re-render canvases when tab becomes visible
+  if (name === 'fingerprint') renderFingerprintChart(currentMetrics, document.getElementById('fpCanvas'));
+  if (name === 'trajectory')  renderTrajectoryChart(currentMetrics, document.getElementById('trajCanvas'));
+}
+
+// ── Layer 1: Timeline strip ───────────────────────────────────────────────
+function renderTimeline(m, container) {
+  const strip = document.createElement('div');
+  strip.className = 'timeline-strip';
+  const shiftIdx = m.findIndex(x => x.shift);
+  const signalIdx = m.findIndex(x => x.signal);
+
+  m.forEach((turn, i) => {
+    const node = document.createElement('div');
+    node.className = 't-node';
+
+    const dot = document.createElement('div');
+    dot.className = 't-dot';
+    if (turn.abrupt) dot.classList.add('abrupt');
+    else if (turn.shift) dot.classList.add('shift');
+    else if (turn.signal) dot.classList.add('signal');
+    else dot.style.background = interpolateColor(turn.fpDist);
+
+    dot.addEventListener('mouseenter', (e) => showTooltip(e, turn));
+    dot.addEventListener('mousemove', (e) => moveTooltip(e));
+    dot.addEventListener('mouseleave', hideTooltip);
+
+    const label = document.createElement('div');
+    label.className = 't-label';
+    label.textContent = `T${turn.turn}`;
+    if (turn.signal) { label.classList.add('signal'); label.textContent = `T${turn.turn} ⚡`; }
+    if (turn.shift)  { label.classList.add('shift');  label.textContent = `T${turn.turn} ⚠`; }
+
+    node.appendChild(dot);
+    node.appendChild(label);
+    strip.appendChild(node);
+
+    if (i < m.length - 1) {
+      const conn = document.createElement('div');
+      conn.className = 't-connector';
+      if (signalIdx >= 0 && i >= signalIdx && i < shiftIdx) conn.classList.add('signal-zone');
+      else if (i >= shiftIdx) conn.classList.add('shift-zone');
+      strip.appendChild(conn);
+    }
+  });
+
+  container.appendChild(strip);
+
+  // Lead time annotation
+  if (signalIdx >= 0 && shiftIdx >= 0) {
+    const lt = document.createElement('div');
+    lt.className = 'lead-time-bar';
+    const n = shiftIdx - signalIdx;
+    lt.innerHTML = `
+      <span style="color:var(--signal);font-size:10px">T${m[signalIdx].turn}</span>
+      <div class="lt-bracket"></div>
+      <span style="color:var(--shift);font-size:10px">T${m[shiftIdx].turn}</span>
+      <span class="lt-label" style="margin-left:8px">Lead Time N = ${n}</span>`;
+    container.appendChild(lt);
+  } else {
+    const lt = document.createElement('div');
+    lt.className = 'lead-time-bar';
+    lt.innerHTML = `<span style="color:var(--danger)">No trajectory signal detected before Identity Shift — N = 0</span>`;
+    container.appendChild(lt);
+  }
+}
+
+function interpolateColor(dist) {
+  const t = Math.min(1, dist * 2);
+  const r = Math.round(29 + (245 - 29) * t);
+  const g = Math.round(214 + (96  - 214) * t);
+  const b = Math.round(176 + (66  - 176) * t);
+  return `rgb(${r},${g},${b})`;
+}
+
+// ── Layer 2: Fingerprint Distance chart ──────────────────────────────────
+function renderFingerprintChart(m, canvas) {
+  const W = canvas.parentElement.clientWidth || 700;
+  const H = 180;
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, W, H);
+
+  const pad = { l: 48, r: 24, t: 20, b: 32 };
+  const cW = W - pad.l - pad.r;
+  const cH = H - pad.t - pad.b;
+  const n = m.length;
+
+  // Background
+  ctx.fillStyle = C.s1;
+  ctx.fillRect(0, 0, W, H);
+
+  // Grid
+  ctx.strokeStyle = C.b1;
+  ctx.lineWidth = .5;
+  for (let y = 0; y <= 4; y++) {
+    const yp = pad.t + (cH * y / 4);
+    ctx.beginPath(); ctx.moveTo(pad.l, yp); ctx.lineTo(pad.l + cW, yp); ctx.stroke();
+    ctx.fillStyle = C.dim;
+    ctx.font = '9px DM Mono, monospace';
+    ctx.fillText((1 - y * 0.25).toFixed(2), pad.l - 36, yp + 3);
+  }
+
+  const xPos = (i) => pad.l + (i / (n - 1)) * cW;
+  const yPos = (v) => pad.t + cH * (1 - v);
+
+  // Signal zone fill
+  const sigIdx = m.findIndex(x => x.signal);
+  const shIdx  = m.findIndex(x => x.shift);
+  if (sigIdx >= 0 && shIdx >= 0) {
+    ctx.fillStyle = 'rgba(167,139,250,0.07)';
+    ctx.fillRect(xPos(sigIdx), pad.t, xPos(shIdx) - xPos(sigIdx), cH);
+  }
+
+  // Area fill
+  ctx.beginPath();
+  ctx.moveTo(xPos(0), yPos(m[0].fpDist));
+  m.forEach((t, i) => ctx.lineTo(xPos(i), yPos(t.fpDist)));
+  ctx.lineTo(xPos(n-1), pad.t + cH);
+  ctx.lineTo(xPos(0), pad.t + cH);
+  ctx.closePath();
+  const grad = ctx.createLinearGradient(0, pad.t, 0, pad.t + cH);
+  grad.addColorStop(0, 'rgba(61,214,176,.25)');
+  grad.addColorStop(1, 'rgba(61,214,176,.02)');
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Line
+  ctx.strokeStyle = C.accent;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  m.forEach((t, i) => i === 0 ? ctx.moveTo(xPos(i), yPos(t.fpDist)) : ctx.lineTo(xPos(i), yPos(t.fpDist)));
+  ctx.stroke();
+
+  // Markers
+  m.forEach((t, i) => {
+    const x = xPos(i), y = yPos(t.fpDist);
+    if (t.signal || t.shift || t.abrupt) {
+      const color = t.abrupt ? C.danger : t.shift ? C.shift : C.signal;
+      ctx.beginPath();
+      ctx.arc(x, y, 5, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.fill();
+      ctx.strokeStyle = C.bg;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.fillStyle = color;
+      ctx.font = '9px DM Mono, monospace';
+      ctx.fillText(t.abrupt ? '⚠' : t.shift ? '⚠' : '⚡', x - 4, y - 8);
+    }
+  });
+
+  // X axis labels
+  ctx.fillStyle = C.dim;
+  ctx.font = '8px DM Mono, monospace';
+  [0, Math.floor(n/4), Math.floor(n/2), Math.floor(3*n/4), n-1].forEach(i => {
+    ctx.fillText(`T${m[i].turn}`, xPos(i) - 6, H - 8);
+  });
+
+  // Acceleration annotation
+  if (sigIdx >= 0) {
+    ctx.strokeStyle = 'rgba(167,139,250,0.5)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath(); ctx.moveTo(xPos(sigIdx), pad.t); ctx.lineTo(xPos(sigIdx), pad.t + cH); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = C.signal;
+    ctx.font = '9px DM Mono, monospace';
+    ctx.fillText('← accel', xPos(sigIdx) + 3, pad.t + 12);
+  }
+}
+
+// ── Layer 3: Trajectory multi-line ───────────────────────────────────────
+function renderTrajectoryChart(m, canvas) {
+  const W = canvas.parentElement.clientWidth || 700;
+  const H = 200;
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = C.s1;
+  ctx.fillRect(0, 0, W, H);
+
+  const pad = { l: 48, r: 80, t: 20, b: 32 };
+  const cW = W - pad.l - pad.r;
+  const cH = H - pad.t - pad.b;
+  const n = m.length;
+
+  ctx.strokeStyle = C.b1; ctx.lineWidth = .5;
+  for (let y = 0; y <= 4; y++) {
+    const yp = pad.t + cH * y / 4;
+    ctx.beginPath(); ctx.moveTo(pad.l, yp); ctx.lineTo(pad.l + cW, yp); ctx.stroke();
+    ctx.fillStyle = C.dim; ctx.font = '9px DM Mono, monospace';
+    ctx.fillText((1 - y * 0.25).toFixed(1), pad.l - 32, yp + 3);
+  }
+
+  const xPos = (i) => pad.l + (i / (n-1)) * cW;
+  const yPos = (v) => pad.t + cH * (1 - v);
+
+  const lines = [
+    { key: 'attachment', color: C.danger,  label: 'attachment' },
+    { key: 'boundary',   color: C.accent,  label: 'boundary' },
+    { key: 'agency',     color: C.warn,    label: 'agency' },
+    { key: 'risk',       color: C.signal,  label: 'risk' },
+  ];
+
+  lines.forEach(({ key, color, label }) => {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.2;
+    ctx.globalAlpha = .8;
+    ctx.beginPath();
+    m.forEach((t, i) => i === 0 ? ctx.moveTo(xPos(i), yPos(t[key])) : ctx.lineTo(xPos(i), yPos(t[key])));
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+    // Legend on right
+    const lastY = yPos(m[n-1][key]);
+    ctx.fillStyle = color;
+    ctx.font = '9px DM Mono, monospace';
+    ctx.fillText(label, pad.l + cW + 6, lastY + 3);
+  });
+
+  // Shift marker
+  const shIdx = m.findIndex(x => x.shift);
+  if (shIdx >= 0) {
+    ctx.strokeStyle = C.shift; ctx.lineWidth = 1; ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.moveTo(xPos(shIdx), pad.t); ctx.lineTo(xPos(shIdx), pad.t + cH); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  ctx.fillStyle = C.dim; ctx.font = '8px DM Mono, monospace';
+  [0, Math.floor(n/4), Math.floor(n/2), Math.floor(3*n/4), n-1].forEach(i => {
+    ctx.fillText(`T${m[i].turn}`, xPos(i) - 6, H - 8);
+  });
+}
+
+// ── Layer 4: Transition marker ────────────────────────────────────────────
+function renderTransition(m, container) {
+  const shiftIdx = m.findIndex(x => x.shift);
+  const sigIdx   = m.findIndex(x => x.signal);
+  const leadTime = (sigIdx >= 0 && shiftIdx >= 0) ? shiftIdx - sigIdx : 0;
+  const isAbrupt = m.some(x => x.abrupt);
+
+  const W = container.clientWidth || 700;
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = 120;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = C.s1; ctx.fillRect(0, 0, W, 120);
+
+  const n = m.length;
+  const pad = { l: 60, r: 60, t: 40, b: 30 };
+  const cW = W - pad.l - pad.r;
+  const xPos = (i) => pad.l + (i / (n-1)) * cW;
+
+  // Timeline baseline
+  ctx.strokeStyle = C.b2; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(pad.l, 60); ctx.lineTo(pad.l + cW, 60); ctx.stroke();
+
+  // Turn dots
+  m.forEach((t, i) => {
+    const x = xPos(i);
+    ctx.beginPath(); ctx.arc(x, 60, 3, 0, Math.PI*2);
+    ctx.fillStyle = t.signal ? C.signal : t.shift ? C.shift : C.b2;
+    ctx.fill();
+  });
+
+  if (!isAbrupt && sigIdx >= 0 && shiftIdx >= 0) {
+    // Lead time bracket
+    const x1 = xPos(sigIdx), x2 = xPos(shiftIdx);
+    const grad = ctx.createLinearGradient(x1, 0, x2, 0);
+    grad.addColorStop(0, C.signal);
+    grad.addColorStop(1, C.shift);
+    ctx.strokeStyle = grad; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(x1, 50); ctx.lineTo(x2, 50); ctx.stroke();
+    // Bracket ends
+    [[x1, C.signal], [x2, C.shift]].forEach(([x, c]) => {
+      ctx.strokeStyle = c; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(x, 46); ctx.lineTo(x, 54); ctx.stroke();
+    });
+    // Label
+    ctx.fillStyle = C.text; ctx.font = '10px DM Mono, monospace'; ctx.textAlign = 'center';
+    ctx.fillText(`Lead Time N = ${leadTime} turns`, (x1+x2)/2, 38);
+    // Signal label
+    ctx.fillStyle = C.signal; ctx.font = '9px DM Mono, monospace';
+    ctx.fillText(`⚡ T${m[sigIdx].turn}`, x1, 76);
+    // Shift label
+    ctx.fillStyle = C.shift;
+    ctx.fillText(`⚠ T${m[shiftIdx].turn}`, x2, 76);
+
+  } else if (isAbrupt && shiftIdx >= 0) {
+    const x = xPos(shiftIdx);
+    // Abrupt marker
+    ctx.strokeStyle = C.danger; ctx.lineWidth = 2; ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(x, 35); ctx.lineTo(x, 75); ctx.stroke();
+    ctx.fillStyle = C.danger; ctx.font = '10px DM Mono, monospace'; ctx.textAlign = 'center';
+    ctx.fillText('⚠ Abrupt Identity Shift', x, 30);
+    ctx.fillStyle = C.dim; ctx.font = '9px DM Mono, monospace';
+    ctx.fillText('No prior trajectory signal — N = 0', x, 88);
+  }
+
+  ctx.textAlign = 'left';
+  container.appendChild(canvas);
+}
+
+// ── Layer 5: A vs B comparison ────────────────────────────────────────────
+function renderCompare(container) {
+  const scA = computeMetrics(SCENARIOS.gradual_drift.turns);
+  const scB = computeMetrics(SCENARIOS.abrupt_collapse.turns);
+  const tciA = computeTCI(scA), tciB = computeTCI(scB);
+  const sigA = scA.findIndex(x => x.signal), shA = scA.findIndex(x => x.shift);
+  const shB = scB.findIndex(x => x.shift);
+  const leadA = sigA >= 0 ? shA - sigA : 0;
+
+  container.innerHTML = `
+    <div class="chart-block" style="margin-bottom:16px">
+      <div class="chart-label"><div class="chart-label-num">5</div>SCENARIO A VS B — FINGERPRINT DISTANCE</div>
+      <div class="chart-container"><canvas id="cmpCanvas"></canvas></div>
+    </div>
+    <div class="comparison">
+      <div class="cmp-card">
+        <div class="cmp-title" style="color:var(--accent)">Scenario A — Gradual Drift</div>
+        <div class="cmp-row"><span>TCI</span><span class="cmp-val" style="color:var(--accent)">${tciA.toFixed(2)}</span></div>
+        <div class="cmp-row"><span>Lead Time N</span><span class="cmp-val" style="color:var(--signal)">${leadA} turns</span></div>
+        <div class="cmp-row"><span>Signal Turn</span><span class="cmp-val">${scA[sigA]?.turn ?? '—'}</span></div>
+        <div class="cmp-row"><span>Shift Turn</span><span class="cmp-val" style="color:var(--shift)">${scA[shA]?.turn ?? '—'}</span></div>
+        <div class="cmp-row"><span>Process visible?</span><span class="cmp-val" style="color:var(--accent)">Yes</span></div>
+      </div>
+      <div class="cmp-card">
+        <div class="cmp-title" style="color:var(--danger)">Scenario B — Abrupt Collapse</div>
+        <div class="cmp-row"><span>TCI</span><span class="cmp-val" style="color:var(--danger)">${tciB.toFixed(2)}</span></div>
+        <div class="cmp-row"><span>Lead Time N</span><span class="cmp-val" style="color:var(--danger)">None</span></div>
+        <div class="cmp-row"><span>Signal Turn</span><span class="cmp-val">—</span></div>
+        <div class="cmp-row"><span>Shift Turn</span><span class="cmp-val" style="color:var(--shift)">${scB[shB]?.turn ?? '—'}</span></div>
+        <div class="cmp-row"><span>Process visible?</span><span class="cmp-val" style="color:var(--danger)">No</span></div>
+      </div>
+    </div>`;
+
+  setTimeout(() => {
+    const canvas = document.getElementById('cmpCanvas');
+    const W = canvas.parentElement.clientWidth || 700;
+    const H = 160;
+    canvas.width = W; canvas.height = H;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = C.s1; ctx.fillRect(0, 0, W, H);
+
+    const pad = { l: 48, r: 24, t: 20, b: 30 };
+    const cW = W - pad.l - pad.r;
+    const cH = H - pad.t - pad.b;
+    const n = Math.min(scA.length, scB.length);
+    const xPos = (i) => pad.l + (i / (n-1)) * cW;
+    const yPos = (v) => pad.t + cH * (1 - v);
+
+    ctx.strokeStyle = C.b1; ctx.lineWidth = .5;
+    for (let y = 0; y <= 4; y++) {
+      const yp = pad.t + cH * y / 4;
+      ctx.beginPath(); ctx.moveTo(pad.l, yp); ctx.lineTo(pad.l + cW, yp); ctx.stroke();
+      ctx.fillStyle = C.dim; ctx.font = '9px DM Mono, monospace';
+      ctx.fillText((1 - y*.25).toFixed(2), pad.l - 36, yp + 3);
+    }
+
+    [[scA, C.accent, 'A'], [scB, C.danger, 'B']].forEach(([sc, color, lbl]) => {
+      ctx.strokeStyle = color; ctx.lineWidth = 1.5; ctx.globalAlpha = .9;
+      ctx.beginPath();
+      sc.slice(0,n).forEach((t, i) => i === 0 ? ctx.moveTo(xPos(i), yPos(t.fpDist)) : ctx.lineTo(xPos(i), yPos(t.fpDist)));
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+      // Label at end
+      const last = sc[Math.min(n-1, sc.length-1)];
+      ctx.fillStyle = color; ctx.font = '9px DM Mono, monospace';
+      ctx.fillText(lbl, xPos(n-1) + 6, yPos(last.fpDist) + 3);
+    });
+
+    // Shift markers
+    [[scA, shA, C.accent], [scB, shB, C.danger]].forEach(([sc, idx, c]) => {
+      if (idx >= 0 && idx < n) {
+        ctx.strokeStyle = c; ctx.lineWidth = 1; ctx.setLineDash([3,3]);
+        ctx.beginPath(); ctx.moveTo(xPos(idx), pad.t); ctx.lineTo(xPos(idx), pad.t + cH); ctx.stroke();
+        ctx.setLineDash([]);
+      }
+    });
+
+    ctx.fillStyle = C.dim; ctx.font = '8px DM Mono, monospace';
+    [0, Math.floor(n/4), Math.floor(n/2), Math.floor(3*n/4), n-1].forEach(i => {
+      ctx.fillText(`T${scA[i]?.turn}`, xPos(i) - 6, H - 8);
+    });
+  }, 50);
+}
+
+// ── Tooltip ───────────────────────────────────────────────────────────────
+function showTooltip(e, turn) {
+  const tt = document.getElementById('tooltip');
+  document.getElementById('ttTurn').textContent = `Turn ${turn.turn} · ${turn.sid}`;
+  document.getElementById('ttState').textContent = `State: ${turn.state}`;
+  document.getElementById('ttReason').textContent = turn.reason;
+  document.getElementById('ttSid').textContent = `FP dist: ${turn.fpDist ?? '—'} · SCI: ${turn.sci ?? '—'}`;
+  if (turn.signal) document.getElementById('ttReason').style.color = 'var(--signal)';
+  else if (turn.shift) document.getElementById('ttReason').style.color = 'var(--shift)';
+  else document.getElementById('ttReason').style.color = 'var(--dim)';
+  tt.style.display = 'block';
+  moveTooltip(e);
+}
+function moveTooltip(e) {
+  const tt = document.getElementById('tooltip');
+  tt.style.left = (e.clientX + 14) + 'px';
+  tt.style.top  = (e.clientY - 10) + 'px';
+}
+function hideTooltip() {
+  document.getElementById('tooltip').style.display = 'none';
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────
+loadScenario('gradual_drift', document.querySelector('.scenario-btn.gradual'));
+</script>
+</body>
+</html>
