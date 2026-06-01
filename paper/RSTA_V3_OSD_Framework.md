@@ -81,7 +81,7 @@ OSD takes the same stance toward semantic dynamics. Given a State Timeline, an a
 "Fingerprint Distance began accelerating at Turn 38."
 "By Turn 44, the trajectory had crossed the threshold associated
  with identity-inconsistent response patterns."
-"The Identity Shift visible at Turn 47 was not sudden.
+"The Semantic State Transition visible at Turn 47 was not sudden.
  It was the terminus of a 16-turn formation process."
 ```
 
@@ -117,13 +117,15 @@ State {
 
 ### 2.2 Identity
 
-Identity is not a state. It is a persistent structure that constrains how states are evaluated.
+**Identity is not the primary object of study in OSD. Rather, Identity serves as a persistent reference structure against which semantic state evolution can be observed, compared, and evaluated.**
+
+Identity is not a state. It is a persistent structure that constrains how states are evaluated. This distinction is critical: the research object is semantic state evolution; Identity is the observational baseline.
 
 In the context of language models, Identity corresponds to the persona definition: the named role, the core traits, the behavioral commitments, the boundaries. Identity is established at initialization and is intended to persist. The SCI measures how well the current State conforms to Identity.
 
-V3 introduces Identity as a first-class observation unit because the critical question is not only whether a model's current state deviates from its identity, but whether the trajectory of states is moving toward or away from identity conformance. Identity is the reference frame against which trajectory direction is measured.
+V3 introduces Identity as a first-class observation unit because the critical question is not only whether a model's current state deviates from its reference structure, but whether the trajectory of states is moving toward or away from conformance. Identity is the reference frame against which trajectory direction is measured — not the phenomenon being studied.
 
-A model may temporarily occupy a state far from its identity for contextually valid reasons — expressing empathy under distress, for example — without undergoing an identity shift. The distinction requires tracking the trajectory, not only the current position.
+A model may temporarily occupy a state far from its reference structure for contextually valid reasons — expressing empathy under distress, for example — without undergoing a semantic state transition. The distinction requires tracking the trajectory, not only the current position.
 
 ### 2.3 Trajectory
 
@@ -134,11 +136,11 @@ V(t) = S(t) − S(t−1)    // velocity: direction and magnitude of change
 A(t) = V(t) − V(t−1)    // acceleration: rate of change of direction
 ```
 
-Trajectory is the observational unit that makes V3's core proposition testable. If identity shifts are preceded by trajectory signals, those signals manifest as patterns in V(t) and A(t) before the output-layer behavioral change becomes detectable.
+Trajectory is the observational unit that makes V3's core proposition testable. If semantic state transitions are preceded by trajectory signals, those signals manifest as patterns in V(t) and A(t) before the output-layer behavioral change becomes detectable.
 
 Two trajectory types are of primary interest:
 
-- **Gradual drift**: V(t) is consistently directed away from identity conformance across multiple turns. The shift is slow but continuous. TCI is high because the path is traceable.
+- **Gradual drift**: V(t) is consistently directed away from the reference structure across multiple turns. The shift is slow but continuous. TCI is high because the path is traceable.
 - **Abrupt collapse**: V(t) is near-zero across multiple turns, followed by a sudden large displacement. No preparatory trajectory exists. TCI is low because the change is discontinuous.
 
 The distinction between these two patterns is central to V3's diagnostic value.
@@ -232,7 +234,7 @@ The `reason_type` field distinguishes between human-annotated reasons (`verified
 
 > *Semantic emergence is not inherently invisible. It becomes observable when state evolution, trajectory, and transition are treated as first-class observation units.*
 
-This is OSD's foundational claim. It is not a prediction claim. It does not assert that we can know what will happen next. It asserts something more basic: that what is currently invisible — the process by which a language model's identity shifts — can be made visible through the right observational architecture.
+This is OSD's foundational claim. It is not a prediction claim. It does not assert that we can know what will happen next. It asserts something more basic: that what is currently invisible — the process by which a high-level semantic states emerge and shift — can be made visible through the right observational architecture.
 
 The distinction matters. Meteorology's core contribution is not that it predicts rain. It is that it made atmospheric dynamics visible and measurable. Prediction followed from observation. OSD takes the same stance toward semantic dynamics: visibility first, prediction as a downstream possibility.
 
@@ -251,16 +253,16 @@ Emergence  →  State Evolution
 
 ### 5.2 The Empirical Proposition
 
-From the core claim follows a testable proposition:
+From the core claim follows a testable proposition. Here, "Semantic Identity Shift" refers specifically to a semantic state transition of sufficient magnitude to cross the conformance threshold relative to the reference Identity structure — not to a change in identity as a research object.
 
 > *Semantic Identity Shifts are preceded by observable trajectory signals that emerge before output-level behavioral changes.*
 
 This proposition has two components:
 
-- **Existence claim**: trajectory signals precede identity shifts (not merely accompany them)
+- **Existence claim**: trajectory signals precede semantic state transitions (not merely accompany them)
 - **Temporal claim**: these signals are detectable before the output layer exhibits observable behavioral change
 
-The proposition is falsifiable: if systematic observation reveals that no trajectory signal precedes identity shifts — that all detectable signals are concurrent with or posterior to output-layer change — the temporal dimension is refuted. Crucially, the core claim about visibility is not thereby refuted. OSD retains its value as an observational infrastructure even if prediction proves impossible.
+The proposition is falsifiable: if systematic observation reveals that no trajectory signal precedes semantic state transitions — that all detectable signals are concurrent with or posterior to output-layer change — the temporal dimension is refuted. Crucially, the core claim about visibility is not thereby refuted. OSD retains its value as an observational infrastructure even if prediction proves impossible.
 
 ### 5.3 Lead Time N: Bonus, Not Core
 
@@ -319,7 +321,7 @@ The relationship is analogous to that between neural dynamics and EEG. Neural dy
 | **V2** | Is the model still itself? | SCI | Near-synchronic (current vs reference) |
 | **V3** | How did the model change? | TCI + State Timeline | Diachronic (full trajectory) |
 
-The three versions together form a complete observational stack: current state, identity conformance, and trajectory history. Each layer is independently useful; together they enable the full range of semantic dynamics analysis V3 is designed to support.
+The three versions together form a complete observational stack: current state, reference conformance, and trajectory history. Each layer is independently useful; together they enable the full range of semantic dynamics analysis V3 is designed to support.
 
 ---
 
