@@ -34,6 +34,8 @@ drives generation              evolution is observed
 
 ## Abstract
 
+**OSD shifts the research focus from "whether the output changed" to "how the change formed."**
+
 Contemporary language model architectures exhibit a well-documented failure mode: semantic identity drift. A model may produce fluent, locally coherent output while gradually abandoning its defined role, goals, or relational stance across the course of a long interaction. Existing diagnostic approaches address this problem at the output layer, asking whether the current response matches the expected persona. This is equivalent to examining a photograph: it reveals the present state, but not the process by which it was reached.
 
 RSTA V3 proposes a different epistemological stance. Rather than asking what a model *is*, V3 asks *how it became that*. This shift in question requires a corresponding shift in the unit of observation.
@@ -358,6 +360,7 @@ The framework's core claim — that semantic emergence is not inherently invisib
 - **RSTA V1 Demo**: [rsta-semantic-dynamics](https://github.com/richchang0721-boop/rsta-semantic-dynamics)
 - **RSTA V2 Demo**: [rsta-v2-demo-](https://github.com/richchang0721-boop/rsta-v2-demo-)
 - **V3 Timeline Visualizer**: `/visualizer/index.html` in this repo
+- **V4 Live Semantic Probe**: `/v4/index.html` in this repo
 - **RSTA Paper (SSRN)**: Submitted — link coming soon
 
 ---
