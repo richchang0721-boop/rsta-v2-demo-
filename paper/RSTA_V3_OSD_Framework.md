@@ -297,6 +297,14 @@ The practical implication: human observers can accept large changes with high TC
 
 ## 7. Relationship to RSTA V1 and V2
 
+| Existing Work | OSD |
+|---------------|-----|
+| Detection → Intent Drift | **Observation** |
+| Theory → Token Dynamics | **↓** |
+| Localization → Internal Representation | **Identity Formation Process** |
+| | *Not whether output changed.* |
+| | ***How the change formed.*** |
+
 V3 does not replace V1 or V2. It extends their observational reach in the temporal dimension.
 
 More precisely, OSD occupies a distinct layer within the broader RSTA framework. RSTA as a generation architecture asks how semantic state should drive token production — the path from State to Transition to Token. OSD as an observation layer asks how semantic state evolution can be recorded, analyzed, and made visible — the path from State to Identity to Trajectory to Transition as observable phenomena.
