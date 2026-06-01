@@ -1,6 +1,6 @@
-# Observable Semantic Dynamics: The Observation Layer of Recursive State Transition Architecture
+# Observable Semantic Dynamics: A Framework for Making High-Level Semantic Emergence Visible in Language Models
 
-*Generation Architecture and Observation Layer within the RSTA Semantic Dynamics Framework*
+*Observation Layer of the Recursive State Transition Architecture (RSTA) · OSD Framework*
 
 **Mao Lin Chang** · Independent Researcher · [pida-lab.com](https://www.pida-lab.com)
 
@@ -40,7 +40,7 @@ Contemporary language model architectures exhibit a well-documented failure mode
 
 RSTA V3 proposes a different epistemological stance. Rather than asking what a model *is*, V3 asks *how it became that*. This shift in question requires a corresponding shift in the unit of observation.
 
-This paper introduces the **Observable Semantic Dynamics Framework**, a theoretical architecture for treating semantic state transitions as observable, structured phenomena. The framework defines four primitive observation units — State, Identity, Trajectory, and Transition — and establishes the relationships between them. It further proposes the Semantic Fingerprint as a compressed, comparable representation of semantic state, and the State Timeline as the primary data structure for recording longitudinal semantic evolution.
+This paper introduces the **Observable Semantic Dynamics Framework** — a theoretical architecture for making high-level semantic emergence visible as a structured, observable phenomenon. The framework defines four primitive observation units — State, Identity, Trajectory, and Transition — and establishes the relationships between them. It further proposes the Semantic Fingerprint as a compressed, comparable representation of semantic state, and the State Timeline as the primary data structure for recording longitudinal semantic evolution.
 
 The framework's core philosophical claim is:
 
@@ -301,7 +301,7 @@ The practical implication: human observers can accept large changes with high TC
 |---------------|-----|
 | Detection → Intent Drift | **Observation** |
 | Theory → Token Dynamics | **↓** |
-| Localization → Internal Representation | **Identity Formation Process** |
+| Localization → Internal Representation | **Semantic Emergence** |
 | | *Not whether output changed.* |
 | | ***How the change formed.*** |
 
@@ -353,7 +353,7 @@ This question was first raised as a reviewer-level challenge in response to the 
 
 ## 9. Conclusion
 
-The Observable Semantic Dynamics Framework is motivated by a single epistemological claim: that the process by which a language model undergoes identity change is not inherently invisible. It is currently unobserved because the instruments to observe it do not yet exist.
+The Observable Semantic Dynamics Framework is motivated by a single epistemological claim: that high-level semantic emergence in language models is not inherently invisible. It is currently unobserved because the instruments to observe it do not yet exist.
 
 V3 builds those instruments at the conceptual level. It defines State, Identity, Trajectory, and Transition as the primitive observation units of semantic dynamics. It introduces the Semantic Fingerprint as a compressed representation enabling efficient comparison, the State Timeline as the longitudinal data structure, and TCI as the measure of trajectory continuity.
 
