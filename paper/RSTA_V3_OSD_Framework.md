@@ -139,6 +139,8 @@ Two trajectory types are of primary interest:
 
 The distinction between these two patterns is central to V3's diagnostic value.
 
+Note: "drift" in this framework refers exclusively to conversation-level semantic state evolution under fixed model weights, not parameter drift or distribution shift in the training sense.
+
 ### 2.4 Transition
 
 A Transition is a discrete event in which the model's State crosses a threshold relative to its Identity. It marks the moment at which accumulated trajectory displacement becomes categorically significant.
