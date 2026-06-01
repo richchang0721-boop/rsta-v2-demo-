@@ -4,7 +4,9 @@
 
 **Mao Lin Chang** · Independent Researcher · [pida-lab.com](https://www.pida-lab.com)
 
-> Draft 0.3 · Observable Semantic Dynamics Framework
+> Draft 0.6 · Observable Semantic Dynamics Framework
+
+**Keywords:** semantic dynamics · semantic identity · identity drift · language models · observability · trajectory analysis · semantic continuity
 
 ---
 
@@ -374,4 +376,4 @@ The framework's core claim — that semantic emergence is not inherently invisib
 ---
 
 *Mao Lin Chang · Independent Researcher · [pida-lab.com](https://www.pida-lab.com)*  
-*Draft 0.3 · Observable Semantic Dynamics Framework*
+*Draft 0.6 · Observable Semantic Dynamics Framework*
