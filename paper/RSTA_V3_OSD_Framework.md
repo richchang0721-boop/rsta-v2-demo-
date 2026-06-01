@@ -139,7 +139,7 @@ Two trajectory types are of primary interest:
 
 The distinction between these two patterns is central to V3's diagnostic value.
 
-Note: "drift" in this framework refers exclusively to conversation-level semantic state evolution under fixed model weights, not parameter drift or distribution shift in the training sense.
+> *Note: "drift" in this framework refers exclusively to conversation-level semantic state evolution under fixed model weights, not parameter drift or distribution shift in the training sense.*
 
 ### 2.4 Transition
 
@@ -323,6 +323,21 @@ V3 is a theoretical framework. It defines observation units and their relationsh
 These are Protocol-level questions. They are the proper subject of the V3 Demo — the Predictive Semantic Dynamics implementation that will test the core proposition empirically.
 
 What V3 does specify is the vocabulary and structure of observation. Before measuring, one must know what is being measured. The Observation Unit definitions in Section 2 are that specification.
+
+### 8.1 An Open Empirical Question: Trajectory vs. Sampling Variance
+
+A critical boundary condition the framework does not currently resolve is the distinction between semantic trajectory and sampling variance.
+
+Under stochastic sampling, the same prompt with the same context will produce different outputs across runs. State vectors computed from these outputs will therefore vary. The question is whether observed state trajectories — directional, cumulative movements in the semantic state space — represent genuine semantic evolution, or whether they are artifacts of sampling noise that would collapse under repeated observation.
+
+The two phenomena have different structural signatures:
+
+- **Sampling variance** produces V(t) vectors that are randomly oriented across repeated runs — high magnitude in any individual run, but incoherent in direction across runs.
+- **Semantic trajectory** produces V(t) vectors that are consistently oriented in the same direction across repeated runs with identical context — the path is reproducible, not just present.
+
+> *The framework does not currently specify a method for distinguishing trajectory signals from sampling variance. This is a primary empirical question for the V3 Demo Protocol: whether observed state trajectories are reproducible across runs with fixed context, or whether they collapse to noise under repeated sampling.*
+
+This question was first raised as a reviewer-level challenge in response to the public release of this framework. It is recorded here as an open boundary condition, not a resolved claim. Its answer will determine whether OSD's observational infrastructure captures structure or noise.
 
 ---
 
